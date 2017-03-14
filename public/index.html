@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta charset="UTF-8">
+    <title>database</title>
+</head>
+<body>
+
+<div>
+    <iframe name="formsubmit" style="display:none;">
+    </iframe>
+<form target="formsubmit">
+    <textarea id="content" cols="100" rows="5"></textarea>
+    <br> 
+    email:<input type="text" id="email">
+    <br>
+    name:<input type="name" id="name">
+    <br>
+    <button id="submitComment"> 提交</button>
+</form>
+<pre id="preObject">
+  
+</pre>
+ <li id="123" class="deleteComment"><time> 2017/3/13 05:32:44</time> <span>lll</span>说：<span>jjjj</span> <button class="deletebtn">删除</button></li>
+<div >
+<ul id="commentList">
+ 
+</ul>
+</div>
+
+
+</div>
+<script src="https://cdn.bootcss.com/jquery/2.2.4/jquery.js"></script>
+<script src="firebase.js"></script>
+<script src="init.js"></script>
+<script>
+// 写入字段方法
+function writeCommentData(name, email,content,timestamp) {
+  firebase.database().ref('comment/' + timestamp).set({
+    name:name,
+    email: email,
+    content:content,
+    timestamp:timestamp
+  });
+}
+// 删除字段方法
+function removeCommentData(timestamp) {
+  firebase.database().ref('comment/' + timestamp).remove();
+     console.log('删除成功');
+}
+
+var submitComment = document.getElementById('submitComment');
+var commentList= document.getElementById('commentList');
+// 获取显示数据
+firebase.database().ref().child('comment').on('value',snap => {
+    // preObject.innerText = JSON.stringify(snap.val(),null,2);
+    var commentInfo='';
+    for(var i in snap.val()){
+      commentInfo += "<li id="+snap.val()[i].timestamp+"><time>" +  " " +new Date(snap.val()[i].timestamp).toLocaleDateString("zh-cn", {hour12: false}) +" "+new Date(snap.val()[i].timestamp).toLocaleTimeString("zh-cn", {hour12: false})+ "</time> <span>" + snap.val()[i].name + "</span>说：<span>" + snap.val()[i].content + "</span><button class='deletebtn'>删除</button></li>";
+    }
+     // Date(Date.now()).toLocaleTimeString("zh-cn", {hour12: false})
+    commentList.innerHTML=commentInfo;       
+});
+
+// 添加数据
+submitComment.addEventListener('click',function(){
+    var name = document.getElementById('name').value;
+    var email=document.getElementById('email').value;
+    var content = document.getElementById('content').value;
+    var timestamp = Date.now()
+    console.log(name,email,content,timestamp);
+    writeCommentData(name,email,content,timestamp);
+});
+
+// 删除操作
+  $(document).on('click','.deletebtn',function(){    
+    var deleleId = $(this).parent()[0].id;
+    removeCommentData(deleleId)
+
+});
+
+</script>
+</body>
+</html>
